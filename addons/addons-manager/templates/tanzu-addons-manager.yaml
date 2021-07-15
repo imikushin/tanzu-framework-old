@@ -115,6 +115,7 @@ spec:
       - args:
         - --metrics-addr=0
         - --enable-leader-election=false
+        - #@ "--health-addr=:{}".format(data.values.tanzuAddonsManager.deployment.healthzPort)
         image:  #@ "{}/{}:{}".format(data.values.imageInfo.imageRepository, data.values.imageInfo.images.tanzuAddonsManagerImage.imagePath, data.values.imageInfo.images.tanzuAddonsManagerImage.tag)
         imagePullPolicy: #@ data.values.imageInfo.imagePullPolicy
         name: tanzu-addons-controller
@@ -125,6 +126,33 @@ spec:
           requests:
             cpu: 100m
             memory: 40Mi
+        ports:
+          - containerPort: #@ data.values.tanzuAddonsManager.deployment.healthzPort
+            name: healthz
+            protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: healthz
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: healthz
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: healthz
+          failureThreshold: 60
+          periodSeconds: 10
+        env:
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
       serviceAccount: tanzu-addons-manager-sa
       terminationGracePeriodSeconds: 10
       #@ if/end data.values.tanzuAddonsManager.deployment.hostNetwork:

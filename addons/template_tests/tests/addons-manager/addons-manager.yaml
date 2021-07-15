@@ -110,7 +110,8 @@ spec:
       - args:
         - --metrics-addr=0
         - --enable-leader-election=false
-        image: projects-stg.registry.vmware.com/tkg/sandbox/tanzu_core_addons/tanzu-addons-manager:v1.3.1_vmware.1
+        - --health-addr=:18316
+        image: projects-stg.registry.vmware.com/tkg/vkatam/addons-controller:v1.4.0-pre-alpha-2-29-ged4c177
         imagePullPolicy: IfNotPresent
         name: tanzu-addons-controller
         resources:
@@ -120,5 +121,32 @@ spec:
           requests:
             cpu: 100m
             memory: 40Mi
+        ports:
+        - containerPort: 18316
+          name: healthz
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: healthz
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: healthz
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: healthz
+          failureThreshold: 60
+          periodSeconds: 10
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
       serviceAccount: tanzu-addons-manager-sa
       terminationGracePeriodSeconds: 10

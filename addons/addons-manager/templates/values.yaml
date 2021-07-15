@@ -7,11 +7,12 @@ imageInfo:
   imagePullPolicy: IfNotPresent
   images:
     tanzuAddonsManagerImage:
-      imagePath: sandbox/tanzu_core_addons/tanzu-addons-manager
-      tag: v1.3.1_vmware.1
+      imagePath: vkatam/addons-controller
+      tag: v1.4.0-pre-alpha-2-29-ged4c177
 tanzuAddonsManager:
   namespace: tanzu-system
   createNamespace: true
   deployment:
     hostNetwork: false
     priorityClassName: null
+    healthzPort: 18316
